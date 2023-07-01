@@ -27,9 +27,10 @@
   [config-path arg]
   (let [zloc (z/of-string (slurp config-path))
         {:keys [groupID artifactID version]} (r/conform-version arg)
-        deps (if-let [d (z/get zloc :deps)]
+        dep-key (if (= config-path "shadow-cljs.edn") :dependencies :deps)
+        deps (if-let [d (z/get zloc dep-key)]
                d
-               (z/get (z/assoc zloc :deps {}) :deps))]
+               (z/get (z/assoc zloc dep-key {}) dep-key))]
     (println (str "Adding " groupID "/" artifactID " v" version))
     (-> deps
         (z/assoc (symbol (str groupID "/" artifactID)) {:mvn/version version})
