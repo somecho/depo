@@ -5,9 +5,10 @@
 
 (defn add [{:keys [_arguments file]}]
   (println file)
-  (let [args  _arguments]
+  (let [args  _arguments
+        config-path (if file file (rw/get-config))]
     (if-not (empty? args)
-      (mapv #(rw/write-dependency "deps.edn" %) args)
+      (mapv #(rw/write-dependency config-path %) args)
       (e/exit {:msg (:no-args e/errors) :code 1}))))
 
 (def add-cmd {:command "add"
@@ -17,7 +18,7 @@
 (def CONFIGURATION
   {:command "depo"
    :description "manage Clojure dependencies easily"
-   :version "0.0.2"
+   :version "0.0.3"
    :opts [{:as "path to configuration file"
            :default nil
            :option "file"
