@@ -38,3 +38,40 @@
         (zp/zprint-str {:parse-string? true
                         :map {:sort? false}})
         (as-> new-conf (spit config-path new-conf)))))
+
+(defmethod write-dependency "project.clj"
+  [config-path arg]
+  (let [zloc (z/of-string (slurp config-path))
+        {:keys [groupID artifactID version]} (r/conform-version arg)
+        dep-sym (symbol (if (= groupID artifactID)
+                          artifactID
+                          (str groupID "/" artifactID)))
+        zipper (if (z/find-value zloc z/next :dependencies)
+                 zloc
+                 (-> zloc
+                     (z/append-child :dependencies)
+                     (z/append-child  [])))]
+    (println (str "Adding " groupID "/" artifactID " v" version))
+    (-> zipper
+        (z/find-value z/next :dependencies)
+        (z/right)
+        (z/string)
+        (read-string)
+        (as-> dep-vec
+              (filter #(not= dep-sym (first %)) dep-vec))
+        (vec)
+        (conj [dep-sym version])
+        (as-> new-deps
+              (-> zipper
+                  (z/find-value z/next :dependencies)
+                  (z/right)
+                  (z/replace new-deps)))
+        (as-> veczip
+              (z/map (fn [z] (if (z/rightmost? z)
+                               z
+                               (z/insert-newline-right z))) veczip))
+        (z/root-string)
+        (zp/zprint-str {:parse-string? true
+                        :vector {:respect-nl? true
+                                 :wrap-coll? nil}})
+        (as-> new-conf (spit config-path new-conf)))))

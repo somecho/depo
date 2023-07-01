@@ -4,7 +4,6 @@
             [depo.errors :as e]))
 
 (defn add [{:keys [_arguments file]}]
-  (println file)
   (let [args  _arguments
         config-path (if file file (rw/get-config))]
     (if-not (empty? args)
@@ -18,7 +17,7 @@
 (def CONFIGURATION
   {:command "depo"
    :description "manage Clojure dependencies easily"
-   :version "0.0.5"
+   :version "0.0.6"
    :opts [{:as "path to configuration file"
            :default nil
            :option "file"

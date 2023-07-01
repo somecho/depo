@@ -1,5 +1,5 @@
-(defproject depo "0.0.5"
+(defproject depo "0.0.6"
   :description "Manage Clojure dependencies easily"
   :url "https://github.com/somecho/depo"
-  :license {:name "Eclipse Public License, v2"
-            :url  "http://www.eclipse.org/legal/epl-v20.html"})
+  :license {:name "Eclipse Public License, v2",
+            :url "http://www.eclipse.org/legal/epl-v20.html"})
