@@ -80,8 +80,3 @@
             (println (e/err :version-not-exist dep-map))
             (println "Using version" release-version "instead")
             (assoc dep-map :version release-version)))))))
-
-(get-all-versions "reagent")
-(version-exists? "reagent" "1.1.0")
-(conform-version "reagent@1.5.0!")
-(v/valid-dependency-map? (p/parse "reagent@1.5.0!"))
