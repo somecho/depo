@@ -23,7 +23,7 @@
   "Writes the dependency to the given configuration file"
   (fn [config-path dependency] config-path))
 
-(defmethod write-dependency "deps.edn"
+(defmethod write-dependency :default
   [config-path arg]
   (let [zloc (z/of-string (slurp config-path))
         {:keys [groupID artifactID version]} (r/conform-version arg)
