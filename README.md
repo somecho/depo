@@ -12,7 +12,7 @@ For one, there is `clj -X:deps find-versions`, which downloads a bunch of jars o
 
 While all of these tools have their own merits, they have their own drawbacks too, such as being slow to start up (all JVM based CLIs, including Depo for now), or only supporting `edn` configuration files, or not having a CLI at all. 
 
-Depo aims to cover these bases.
+Depo aims to cover these bases. See the [roadmap](https://github.com/somecho/depo/issues/1)
 
 #### NOTE
 Depo is still a work in progress.
@@ -66,7 +66,6 @@ depo add org.clojure/clojure
 
 # If the groupID and artifactID are the same, you can ommit the groupID
 depo add reagent
-
 
 # Use specific version
 depo add reagent@1.11.0
