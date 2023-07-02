@@ -3,4 +3,7 @@
   :plugins [:kaocha.plugin/profiling]
   :tests [{:id :unit
            :ns-patterns [".*-unit-test"]
+           :test-paths ["test" "src"]}
+          {:id :resolver
+           :ns-patterns [".resolver-test"]
            :test-paths ["test" "src"]}]}
