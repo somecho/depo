@@ -170,4 +170,46 @@
                               :map {:sort? false
                                     :hang? false}})
               (as-> new-conf (spit config-path new-conf))))
-        (println (str identifier) current-version "is up to date. Skipping")))))
+        (println (str identifier) current-version "is up to date. Skipping.")))))
+
+(defmethod update-dependency "project.clj"
+  [config-path arg]
+  (let [zloc (z/of-string (slurp config-path))
+        {:keys [groupID artifactID version]} (dp/parse arg)
+        identifier (symbol (if (= groupID artifactID)
+                             artifactID
+                             (str groupID "/" artifactID)))
+        dep-vec (-> zloc
+                    (z/find-value z/next :dependencies)
+                    (z/next)
+                    (z/string)
+                    (read-string))
+        dep-item (first (filter #(= (first %) identifier) dep-vec))
+        current-version (second dep-item)
+        dependency-exists? (seq  dep-item)
+        {:keys [groupID artifactID version]} (if dependency-exists?
+                                               (r/conform-version arg)
+                                               nil)]
+    (if-not dependency-exists?
+      (println arg "isn't a dependency. Skipping.")
+      (if-not (= current-version version)
+        (do
+          (println "Updating" (str identifier))
+          (println "Current version:" current-version)
+          (println "Latest version:" version)
+          (-> zloc
+              (z/find-value z/next :dependencies)
+              (z/next)
+              (z/replace (vec (map #(if (= (first %) identifier)
+                                      [identifier version]
+                                      %) dep-vec)))
+              (as-> veczip
+                    (z/map (fn [z] (if (z/rightmost? z)
+                                     z
+                                     (z/insert-newline-right z))) veczip))
+              (z/root-string)
+              (zp/zprint-str {:parse-string? true
+                              :vector {:respect-nl? true
+                                       :wrap-coll? nil}})
+              (as-> new-conf (spit config-path new-conf))))
+        (println (str identifier) current-version "is up to date. Skipping.")))))
