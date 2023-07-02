@@ -10,7 +10,9 @@
   - project.clj
   - shadow-cljs.edn
   - bb.edn
+
   Returns the a string matching the first file that it finds.
+
   Returns nil otherwise"
   []
   (cond

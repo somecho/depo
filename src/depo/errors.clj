@@ -8,7 +8,7 @@
   Possible `error-key`s
   - `:no-args` - \"requires atleast one argument\"
   - `:invalid-argument` - \"The argument `(:argument opts)` is invalid\"
-  - `:version-not-exist` - \"`(:artifactID opts) version `(:version opts`) does not exist\" "
+  - `:version-not-exist` - \"`(:artifactID opts)` version `(:version opts)` does not exist\" "
   [error-key & opts]
   (let [opts (first opts)]
     (case error-key

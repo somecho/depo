@@ -4,8 +4,18 @@
 
 (defn parse
   "Given a dependency string that follows the following schema
-  [groupID/]artifactID[@version]
-  Returns a map with the keys `:groupID`, `:artifactID`, `:version`"
+  `[groupID/]artifactID[@version]`
+
+  Returns a map with the keys `:groupID`, `:artifactID`, `:version`
+  
+  ### Examples: 
+  ```clj
+  (parse \"reagent\")
+  ; returns {:groupdID \"reagent\" :artifactID \"reagent\" :version nil}
+
+  (parse \"emotion-cljs@0.2.0\"'
+  ; returns {:groupdID \"emotion-cljs\" :artifactID \"emotion-cljs\" :version 0.2.0}
+  ```"
   [arg]
   (let [[group-artifact version]  (if (s/includes? arg "@")
                                     (s/split arg #"@")
