@@ -22,12 +22,16 @@
 (defn update-cmd [{:keys [_arguments file]}]
   (let [args  _arguments
         config-path (if file file (rw/get-config))]
-    (println args)))
+    (if (empty? args)
+      (do (mapv #(rw/update-dependency config-path %)
+                (rw/get-all-dependency-names config-path))
+          (println "Done!"))
+      (mapv #(rw/update-dependency config-path %) args))))
 
 (def CONFIGURATION
   {:command "depo"
    :description "Manage dependencies for Clojure projects easily"
-   :version "0.0.19"
+   :version "0.0.20"
    :opts [{:as "path to configuration file"
            :default nil
            :option "file"

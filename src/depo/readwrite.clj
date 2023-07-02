@@ -141,6 +141,30 @@
                                  :wrap-coll? nil}})
         (as-> new-conf (spit config-path new-conf)))))
 
+(defmulti get-all-dependency-names
+  "Returns all the dependencies from the config"
+  (fn [config-path] config-path))
+
+(defmethod get-all-dependency-names :default
+  [config-path]
+  (let [zloc (z/of-string (slurp config-path))]
+    (-> zloc
+        (z/get :deps)
+        (z/string)
+        (read-string)
+        (keys)
+        (as-> keys (map str keys)))))
+
+(defmethod get-all-dependency-names "project.clj"
+  [config-path]
+  (let [zloc (z/of-string (slurp config-path))]
+    (-> zloc
+        (z/find-value z/next :dependencies)
+        (z/next)
+        (z/string)
+        (read-string)
+        (as-> dep-vec (map #(str (first %)) dep-vec)))))
+
 (defmulti update-dependency
   "Updates a dependency in a Clojure project"
   (fn [config-path dependency] config-path))
