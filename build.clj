@@ -1,6 +1,5 @@
 (ns build
   (:require [clojure.tools.build.api :as b]
-            [clojure.string :as str]
             [deps-deploy.deps-deploy :as dd]))
 
 (def lib 'org.clojars.some/depo)
