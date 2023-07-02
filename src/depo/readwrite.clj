@@ -39,7 +39,8 @@
         (z/assoc (symbol (str groupID "/" artifactID)) {:mvn/version version})
         (z/root-string)
         (zp/zprint-str {:parse-string? true
-                        :map {:sort? false}})
+                        :map {:sort? false
+                              :hang? false}})
         (as-> new-conf (spit config-path new-conf)))))
 
 (defmethod write-dependency "project.clj"
