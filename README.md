@@ -1,4 +1,4 @@
-# Depo ‼WIP‼
+# Depo
 [![cljdoc badge](https://cljdoc.org/badge/org.clojars.some/depo)](https://cljdoc.org/d/org.clojars.some/depo)
 [![Clojars Project](https://img.shields.io/clojars/v/org.clojars.some/depo.svg)](https://clojars.org/org.clojars.some/depo)
 ![](https://github.com/somecho/depo/actions/workflows/deploy.yml/badge.svg)
