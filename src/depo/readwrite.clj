@@ -1,5 +1,6 @@
 (ns depo.readwrite
   (:require [clojure.java.io :as io]
+            [clojure.string :as str]
             [depo.parser :as dp]
             [depo.resolver :as r]
             [zprint.core :as zp]
@@ -143,13 +144,14 @@
 
 (defmulti get-all-dependency-names
   "Returns all the dependencies from the config"
-  (fn [config-path] config-path))
+  (fn [config-path] (last (str/split config-path #"/"))))
 
 (defmethod get-all-dependency-names :default
   [config-path]
-  (let [zloc (z/of-string (slurp config-path))]
+  (let [zloc (z/of-string (slurp config-path))
+        dep-key (if (= (last (str/split config-path #"/")) "shadow-cljs.edn") :dependencies :deps)]
     (-> zloc
-        (z/get :deps)
+        (z/get dep-key)
         (z/string)
         (read-string)
         (keys)
@@ -167,14 +169,14 @@
 
 (defmulti update-dependency
   "Updates a dependency in a Clojure project"
-  (fn [config-path dependency] config-path))
+  (fn [config-path dependency] (last (str/split config-path #"/"))))
 
 (defmethod update-dependency :default
   [config-path arg]
   (let [zloc (z/of-string (slurp config-path))
         {:keys [groupID artifactID version]} (r/conform-version arg)
         identifier (symbol (str groupID "/" artifactID))
-        dep-key (if (= config-path "shadow-cljs.edn") :dependencies :deps)
+        dep-key (if (= (last (str/split config-path #"/")) "shadow-cljs.edn") :dependencies :deps)
         dep-map (-> zloc (z/get dep-key) z/string read-string)
         dependency-exists? (contains? dep-map identifier)
         current-version (get-in dep-map [identifier :mvn/version])]

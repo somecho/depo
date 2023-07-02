@@ -1,0 +1,16 @@
+{:dependencies {reagent/reagent {:mvn/version "1.2.0"}
+                emotion-cljs/emotion-cljs {:mvn/version "0.1.0"}
+                metosin/malli {:mvn/version "0.10.0"}}
+ :dev-http {8080 "public"},
+ :builds
+ {:app
+  {:target :browser,
+   :output-dir "public"
+   :release {:compiler-options {:optimizations :advanced}}
+   :devtools {:reload-strategy :full},
+   :modules {:main {:entries [app.core]}}}
+  :unit-tests
+  {:target :node-test
+   :output-to "out/unit-tests.js"
+   :ns-regexp "-unit-test$"
+   :autorun true}}}
