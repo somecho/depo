@@ -12,12 +12,15 @@
       (println (e/err :no-args)))))
 
 (def add-cmd {:command "add"
-              :description "adds dependencies to a Clojure project."
+              :description "adds dependencies to a Clojure project"
+              :examples ["depo add org.clojure/clojure"
+                         "depo add reagent@1.1.0"
+                         "depo add re-frame clj-http"]
               :runs add})
 
 (def CONFIGURATION
   {:command "depo"
-   :description "manage Clojure dependencies easily"
+   :description "Manage dependencies for Clojure projects easily"
    :version "0.0.12"
    :opts [{:as "path to configuration file"
            :default nil
@@ -26,6 +29,6 @@
            :type :string}]
    :subcommands [add-cmd]})
 
-(defn ^:no-doc -main
+(defn -main
   [& args]
   (run-cmd args CONFIGURATION))
