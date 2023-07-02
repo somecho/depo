@@ -1,6 +1,16 @@
 {:paths ["src"],
- :deps {rewrite-clj/rewrite-clj {:mvn/version "1.1.47"},
-        cli-matic/cli-matic {:mvn/version "0.5.4"},
-        clj-http/clj-http {:mvn/version "3.12.3"},
-        metosin/malli {:mvn/version "0.11.0"},
-        zprint/zprint {:mvn/version "1.2.7"}}}
+ :deps
+ {rewrite-clj/rewrite-clj {:mvn/version "1.1.47"},
+  cli-matic/cli-matic {:mvn/version "0.5.4"},
+  clj-http/clj-http {:mvn/version "3.12.3"},
+  metosin/malli {:mvn/version "0.11.0"},
+  zprint/zprint {:mvn/version "1.2.7"}}
+ :aliases
+ {:build {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.9.4"}
+                       slipset/deps-deploy {:mvn/version "RELEASE"}}
+          :ns-default build}
+  :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "0.2.1"}}
+           :exec-fn deps-deploy.deps-deploy/deploy
+           :exec-args {:installer :remote
+                       :sign-releases? false
+                       :artifact "target/depo-0.0.7.jar"}}}}

@@ -7,8 +7,9 @@
   (let [args  _arguments
         config-path (if file file (rw/get-config))]
     (if-not (empty? args)
-      (mapv #(rw/write-dependency config-path %) args)
-      (e/exit {:msg (:no-args e/errors) :code 1}))))
+      (do (mapv #(rw/write-dependency config-path %) args)
+          (println "Done!"))
+      (println (e/err :no-args)))))
 
 (def add-cmd {:command "add"
               :description "adds dependencies to a Clojure project."
@@ -17,7 +18,7 @@
 (def CONFIGURATION
   {:command "depo"
    :description "manage Clojure dependencies easily"
-   :version "0.0.6"
+   :version "0.0.8"
    :opts [{:as "path to configuration file"
            :default nil
            :option "file"
