@@ -1,5 +1,6 @@
 (ns depo.readwrite
   (:require [clojure.java.io :as io]
+            [depo.parser :as dp]
             [depo.resolver :as r]
             [zprint.core :as zp]
             [rewrite-clj.zip :as z]))
@@ -77,3 +78,32 @@
                         :vector {:respect-nl? true
                                  :wrap-coll? nil}})
         (as-> new-conf (spit config-path new-conf)))))
+
+(defmulti remove-dependency
+  "Removes the dependency from the given configuration file"
+  (fn [config-path dependency] config-path))
+
+(defmethod remove-dependency :default
+  [config-path arg]
+  (let [zloc (z/of-string (slurp config-path))
+        {:keys [groupID artifactID]} (dp/parse arg)
+        identifier (symbol (str groupID "/" artifactID))]
+    (-> zloc
+        (z/get :deps)
+        (z/string)
+        (read-string)
+        (as-> dep-map
+              (if-not (contains? dep-map identifier)
+                (println arg "isn't a dependency. Skipping.")
+                (do
+                  (println "Removing" (str identifier))
+                  (-> dep-map
+                      (dissoc identifier)
+                      (as-> new-deps
+                            (-> zloc
+                                (z/assoc :deps new-deps)))
+                      (z/root-string)
+                      (zp/zprint-str {:parse-string? true
+                                      :map {:sort? false
+                                            :hang? false}})
+                      (as-> new-conf (spit config-path new-conf)))))))))

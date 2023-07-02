@@ -22,7 +22,8 @@
   (let [args  _arguments
         config-path (if file file (rw/get-config))]
     (if-not (empty? args)
-      (println "TODO")
+      (do (mapv #(rw/remove-dependency config-path %) args)
+          (println "Done!"))
       (println (e/err :no-args)))))
 
 (def remove-cmd {:command "remove"
@@ -32,13 +33,14 @@
 (def CONFIGURATION
   {:command "depo"
    :description "Manage dependencies for Clojure projects easily"
-   :version "0.0.13"
+   :version "0.0.14"
    :opts [{:as "path to configuration file"
            :default nil
            :option "file"
            :short "f"
            :type :string}]
-   :subcommands [add-cmd]})
+   :subcommands [add-cmd
+                 remove-cmd]})
 
 (defn -main
   [& args]
