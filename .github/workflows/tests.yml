@@ -1,7 +1,7 @@
 name: tests
 on:
   push:
-    paths: ['test/**']
+    paths: ['test/**','src/**']
   workflow_dispatch:
 
 jobs:
