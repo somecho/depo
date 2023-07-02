@@ -87,9 +87,10 @@
   [config-path arg]
   (let [zloc (z/of-string (slurp config-path))
         {:keys [groupID artifactID]} (dp/parse arg)
+        dep-key (if (= config-path "shadow-cljs.edn") :dependencies :deps)
         identifier (symbol (str groupID "/" artifactID))]
     (-> zloc
-        (z/get :deps)
+        (z/get dep-key)
         (z/string)
         (read-string)
         (as-> dep-map
