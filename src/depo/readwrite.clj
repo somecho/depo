@@ -108,3 +108,34 @@
                                       :map {:sort? false
                                             :hang? false}})
                       (as-> new-conf (spit config-path new-conf)))))))))
+
+(defmethod remove-dependency "project.clj"
+  [config-path arg]
+  (let [zloc (z/of-string (slurp config-path))
+        {:keys [groupID artifactID]} (dp/parse arg)
+        dep-sym (symbol (if (= groupID artifactID)
+                          artifactID
+                          (str groupID "/" artifactID)))]
+    (println "Removing" (str dep-sym))
+    (-> zloc
+        (z/find-value z/next :dependencies)
+        (z/next)
+        (z/string)
+        (read-string)
+        (as-> dep-vec
+              (filter #(not= (first %) dep-sym) dep-vec))
+        (vec)
+        (as-> new-deps
+              (-> zloc
+                  (z/find-value z/next :dependencies)
+                  (z/next)
+                  (z/replace new-deps)))
+        (as-> veczip
+              (z/map (fn [z] (if (z/rightmost? z)
+                               z
+                               (z/insert-newline-right z))) veczip))
+        (z/root-string)
+        (zp/zprint-str {:parse-string? true
+                        :vector {:respect-nl? true
+                                 :wrap-coll? nil}})
+        (as-> new-conf (spit config-path new-conf)))))
