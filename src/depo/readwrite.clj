@@ -140,3 +140,34 @@
                         :vector {:respect-nl? true
                                  :wrap-coll? nil}})
         (as-> new-conf (spit config-path new-conf)))))
+
+(defmulti update-dependency
+  "Updates a dependency in a Clojure project"
+  (fn [config-path dependency] config-path))
+
+(defmethod update-dependency :default
+  [config-path arg]
+  (let [zloc (z/of-string (slurp config-path))
+        {:keys [groupID artifactID version]} (r/conform-version arg)
+        identifier (symbol (str groupID "/" artifactID))
+        dep-key (if (= config-path "shadow-cljs.edn") :dependencies :deps)
+        dep-map (-> zloc (z/get dep-key) z/string read-string)
+        dependency-exists? (contains? dep-map identifier)
+        current-version (get-in dep-map [identifier :mvn/version])]
+    (if-not dependency-exists?
+      (println arg "isn't a dependency. Skipping.")
+      (if (not= current-version version)
+        (do
+          (println "Updating" (str identifier))
+          (println "Current version:" current-version)
+          (println "Latest version:" version)
+          (-> zloc
+              (z/get dep-key)
+              (z/replace
+               (assoc dep-map identifier {:mvn/version version}))
+              (z/root-string)
+              (zp/zprint-str {:parse-string? true
+                              :map {:sort? false
+                                    :hang? false}})
+              (as-> new-conf (spit config-path new-conf))))
+        (println (str identifier) current-version "is up to date. Skipping")))))
