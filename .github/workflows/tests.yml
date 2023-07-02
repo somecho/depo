@@ -28,3 +28,6 @@ jobs:
 
       - name: Test Resolver
         run: clojure -M:test "$@" resolver
+
+      - name: Run end-to-end tests
+        run: clojure -M:test "$@" e2e

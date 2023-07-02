@@ -6,4 +6,7 @@
            :test-paths ["test" "src"]}
           {:id :resolver
            :ns-patterns [".resolver-test"]
+           :test-paths ["test" "src"]}
+          {:id :e2e
+           :ns-patterns [".*-e2e-test"]
            :test-paths ["test" "src"]}]}
