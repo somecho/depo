@@ -13,10 +13,10 @@ For one, there is `clj -X:deps find-versions`, which downloads a bunch of jars o
 
 While all of these tools have their own merits, they have their own drawbacks too, such as being slow to start up (all JVM based CLIs, including Depo for now), or only supporting `edn` configuration files, or not having a CLI at all. 
 
-Depo aims to cover these bases. See the [roadmap](https://github.com/somecho/depo/issues/1)
+Depo aims to cover these bases.
 
 #### NOTE
-Depo is still a work in progress.
+Depo is still a work in progress. See the [roadmap](https://github.com/somecho/depo/issues/1)
 
 ## Usage
 ### Depo CLI 
