@@ -46,20 +46,21 @@ For more information, see the [API documentation](https://cljdoc.org/d/org.cloja
 
 ## Features / Commands
 To see a list of commands, run `depo --help`. 
+
+Depo first looks for a config file in your current working directory in the following order:
+1. `deps.edn`
+2. `project.clj`
+3. `shadow-cljs.edn`
+4. `bb.edn`
+
+It then uses first config file that it finds for its operations.
+
 ### Global Flags
 There are flags that you can set if you'd like to override the default behavior of the commands.
 
 - `--file/-f` - Use a different config file instead of the default file Depo finds.
 
 ### Add
-Looks for a config file in your current working directory in the following order:
-1. `deps.edn`
-2. `project.clj`
-3. `shadow-cljs.edn`
-4. `bb.edn`
-
-It then writes the dependency into the first config file that it finds. 
-
 #### Usage
 ```bash
 # simple usage
@@ -73,6 +74,21 @@ depo add reagent@1.11.0
 
 # Use a different config file instead of default
 depo -f bb.edn add metosin/malli
+```
+### Remove
+#### Usage
+```bash
+depo remove clj-http
+```
+
+### Update
+#### Usage
+```bash
+# Updates a specific dependency
+depo update metosin/malli
+
+# Updates all dependencies
+depo update
 ```
 
 ---
