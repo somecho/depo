@@ -1,0 +1,6 @@
+#kaocha/v1
+ {:reporter [kaocha.report/documentation]
+  :plugins [:kaocha.plugin/profiling]
+  :tests [{:id :unit
+           :ns-patterns [".*-unit-test"]
+           :test-paths ["test" "src"]}]}
