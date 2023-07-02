@@ -20,7 +20,8 @@
                 :basis (b/create-basis {:project "deps.edn"})
                 :scm {:connection connection
                       :developerConnection connection
-                      :url url}
+                      :url url
+                      :tag (b/git-process {:git-args "rev-parse HEAD"})}
                 :src-dirs ["src"]})
   (b/copy-dir {:src-dirs ["src" "resources"]
                :target-dir class-dir})
