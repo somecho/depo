@@ -7,8 +7,8 @@
 (def version "0.0.13")
 (def jar-file (format "target/%s-%s.jar" (name lib) version))
 (def class-dir "target/classes")
-(def url "https://github.com/somecho/depo.git")
-(def connection (str "scm:git:" url))
+(def url "https://github.com/somecho/depo")
+(def connection (str "scm:git:" url ".git"))
 
 (defn clean [_]
   (b/delete {:path "target"}))
