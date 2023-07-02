@@ -1,9 +1,10 @@
 (ns build
   (:require [clojure.tools.build.api :as b]
+            [clojure.string :as str]
             [deps-deploy.deps-deploy :as dd]))
 
 (def lib 'org.clojars.some/depo)
-(def version "0.0.8")
+(def version (str/trim (slurp "VERSION")))
 (def jar-file (format "target/%s-%s.jar" (name lib) version))
 (def class-dir "target/classes")
 (def url "https://github.com/somecho/depo.git")

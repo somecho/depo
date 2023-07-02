@@ -1,5 +1,6 @@
 (ns depo.core
   (:require [cli-matic.core :refer [run-cmd]]
+            [clojure.string :as str]
             [depo.readwrite :as rw]
             [depo.errors :as e]))
 
@@ -18,7 +19,7 @@
 (def CONFIGURATION
   {:command "depo"
    :description "manage Clojure dependencies easily"
-   :version "0.0.8"
+   :version (str/trim (slurp "VERSION"))
    :opts [{:as "path to configuration file"
            :default nil
            :option "file"

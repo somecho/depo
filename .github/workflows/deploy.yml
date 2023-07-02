@@ -1,0 +1,32 @@
+name: deploy
+on:
+  push:
+    paths: ['src/**']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to clojars
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'adopt'
+          java-version: 17
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@11.0
+        with:
+          cli: 'latest'
+
+      - name: Build Jar
+        run: |
+          clj -T:build clean
+          clj -T:build jar
+
+      - name: Deploy to Clojars
+        run: env CLOJARS_USERNAME=${{ secrets.CLOJARS_USERNAME }} CLOJARS_PASSWORD=${{ secrets.CLOJARS_PASSWORD }} clj -T:build deploy
