@@ -6,7 +6,7 @@ on:
 
 jobs:
   tests:
-    name: Deploy to clojars
+    name: Run tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -24,6 +24,4 @@ jobs:
           cli: 'latest'
 
       - name: Run Unit Tests
-        run: clojure -M:kaocha "$@" unit
-
-
+        run: clojure -M:test "$@" unit
