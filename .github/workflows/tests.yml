@@ -1,0 +1,29 @@
+name: tests
+on:
+  push:
+    paths: ['test/**']
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: Deploy to clojars
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'adopt'
+          java-version: 17
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@11.0
+        with:
+          cli: 'latest'
+
+      - name: Run Unit Tests
+        run: clojure -M:kaocha "$@" unit
+
+
