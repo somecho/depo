@@ -18,6 +18,17 @@
                          "depo add re-frame clj-http"]
               :runs add})
 
+(defn remove [{:keys [_arguments file]}]
+  (let [args  _arguments
+        config-path (if file file (rw/get-config))]
+    (if-not (empty? args)
+      (println "TODO")
+      (println (e/err :no-args)))))
+
+(def remove-cmd {:command "remove"
+                 :description "remove dependencies from a Clojure project"
+                 :runs remove})
+
 (def CONFIGURATION
   {:command "depo"
    :description "Manage dependencies for Clojure projects easily"
