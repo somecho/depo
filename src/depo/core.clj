@@ -7,7 +7,9 @@
   (let [args  _arguments
         config-path (if file file (rw/get-config))]
     (if-not (empty? args)
-      (do (mapv #(rw/write-dependency config-path %) args)
+      (do (mapv #(rw/apply-operation {:config-path config-path
+                                      :id %
+                                      :operation :add}) args)
           (println "Done!"))
       (println (e/err :no-args)))))
 
@@ -15,7 +17,9 @@
   (let [args  _arguments
         config-path (if file file (rw/get-config))]
     (if-not (empty? args)
-      (do (mapv #(rw/remove-dependency config-path %) args)
+      (do (mapv #(rw/apply-operation {:config-path config-path
+                                      :id %
+                                      :operation :remove}) args)
           (println "Done!"))
       (println (e/err :no-args)))))
 
@@ -23,15 +27,19 @@
   (let [args  _arguments
         config-path (if file file (rw/get-config))]
     (if (empty? args)
-      (do (mapv #(rw/update-dependency config-path %)
+      (do (mapv #(rw/apply-operation {:config-path config-path
+                                      :id %
+                                      :operation :update})
                 (rw/get-all-dependency-names config-path))
           (println "Done!"))
-      (mapv #(rw/update-dependency config-path %) args))))
+      (mapv #(rw/apply-operation {:config-path config-path
+                                  :id %
+                                  :operation :update}) args))))
 
 (def CONFIGURATION
   {:command "depo"
    :description "Manage dependencies for Clojure projects easily"
-   :version "0.0.21"
+   :version "0.1.22"
    :opts [{:as "path to configuration file"
            :default nil
            :option "file"
