@@ -15,7 +15,8 @@
                  [commons-codec "1.15"]
                  [commons-io "2.8.0"]
                  [slingshot "0.12.2"]
-                 [potemkin "0.4.5"]]
+                 [potemkin "0.4.5"]
+                 [reagent "1.2.0"]]
   :resource-paths ["resources"]
   :profiles {:dev {:dependencies [;; optional deps
                                   [cheshire "5.10.0"]
@@ -46,6 +47,6 @@
              :1.10 {:dependencies [[org.clojure/clojure "1.10.1"]]}}
   :aliases {"all" ["with-profile" "dev,1.6:dev,1.7:dev,1.8:dev,1.9:dev,1.10:dev"]}
   :plugins [[codox "0.6.4"]]
-  :test-selectors {:default  #(not (:integration %))
+  :test-selectors {:default #(not (:integration %))
                    :integration :integration
                    :all (constantly true)})

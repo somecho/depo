@@ -5,7 +5,7 @@
 (def INPUT-FOLDER "test/resources/input/")
 (def SNAPSHOTS-FOLDER "test/resources/snapshots/")
 (def FILES ["project.clj" "deps.edn" "bb.edn" "shadow-cljs.edn"])
-(def TARGETS ["update-all"])
+(def TARGETS ["add-reagent-1.2.0" "add-multiple"])
 
 (defn setup-directories []
   (mapv #(io/make-parents (str SNAPSHOTS-FOLDER % "/FILE")) TARGETS))
@@ -23,6 +23,7 @@
   (println "Setting up snapshot directories")
   (setup-directories)
   (println "Creating snapshots")
-  (println "Update-all snapshots")
-  (mapv #(create-snapshot % "update-all" "update") FILES)
+  (println "add-reagent-1.2.0 snapshots")
+  (mapv #(create-snapshot % "add-reagent-1.2.0" "add" "reagent@1.2.0") FILES)
+  (mapv #(create-snapshot % "add-multiple" "add" "reagent@1.2.0" "org.clojure/java.jdbc@0.7.12") FILES)
   (println "All snapshots have been created"))

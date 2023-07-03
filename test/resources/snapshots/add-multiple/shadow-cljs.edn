@@ -13,7 +13,9 @@
                 [cider/orchard "0.5.8"]
                 [com.wsscode/pathom "2.3.1"]
                 [org.pinkgorilla/gorilla-renderable-ui "0.1.33"]
-                [link.szabo.mauricio/duck-repled "0.1.1-SNAPSHOT"]]
+                [link.szabo.mauricio/duck-repled "0.1.1-SNAPSHOT"]
+                [reagent "1.2.0"]
+                [org.clojure/java.jdbc "0.7.12"]]
 
  :jvm-opts ["-Xmx800M"]
  :builds
