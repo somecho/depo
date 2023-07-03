@@ -144,6 +144,7 @@
         identifier (create-identifier groupID
                                       artifactID
                                       dep-type)]
+    (println "Adding" identifier version)
     (case dep-type
       :map (assoc deps (symbol identifier) {:mvn/version version})
       :vector (-> (conj deps [(symbol identifier) version])
@@ -157,6 +158,7 @@
         identifier (create-identifier groupID
                                       artifactID
                                       dep-type)]
+    (println "Removing" identifier version)
     (case dep-type
       :map (dissoc deps (symbol identifier))
       :vector (vec (filter #(not= (symbol identifier) (first %)) deps)))))
@@ -177,15 +179,19 @@
                                       (get-dependency-type deps))
         current-version (get-current-version deps (symbol identifier))]
     (if (= current-version version)
-      deps
-      (cond
-        (map? deps) (assoc deps (symbol identifier) {:mvn/version version})
-        (vector? deps) (mapv
-                        #(if (= (symbol identifier) (first %))
-                           (vec (concat [(symbol identifier) version]
-                                        (rest (rest %))))
-                           %)
-                        deps)))))
+      (do
+        (println identifier current-version "is up-to-date. Skipping.")
+        deps)
+      (do
+        (println "Updating" identifier current-version "->" version)
+        (cond
+          (map? deps) (assoc deps (symbol identifier) {:mvn/version version})
+          (vector? deps) (mapv
+                          #(if (= (symbol identifier) (first %))
+                             (vec (concat [(symbol identifier) version]
+                                          (rest (rest %))))
+                             %)
+                          deps))))))
 
 (defn zip-vec-add-newlines
   "- `zloc` - a zipper object of a vector created by rewrite-clj
@@ -207,7 +213,6 @@
   Replaces the specified dependencies in a map and returns
   a string formatted by zprint"
   [{:keys [zloc keys new-deps project-type]}]
-  (println " new places")
   (-> zloc
       (as-> zipper
             (case project-type
@@ -262,3 +267,8 @@
                                 :new-deps new-deps
                                 :keys access-keys})
          (spit config-path))))
+         ; (println))))
+
+; (apply-operation {:config-path "test/resources/input/bb.edn"
+;                   :id "reagent"
+;                   :operation :add})

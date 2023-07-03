@@ -30,13 +30,24 @@
     (apply sh (concat ["clojure" "-M" "-m" "depo.core" "-f" target] commands))
     (= (slurp snapshot) (slurp target))))
 
-(deftest update-all
-  (io/make-parents (str TEMP-FOLDER "update-all/FILE"))
+(deftest add-multiple
+  (io/make-parents (str TEMP-FOLDER "add-multiple/FILE"))
   (testing "project.clj"
-    (is (apply-compare "project.clj" "update-all" "update")))
+    (is (apply-compare "project.clj" "add-multiple" "add" "reagent@1.2.0" "org.clojure/java.jdbc@0.7.12")))
   (testing "deps.edn"
-    (is (apply-compare "project.clj" "update-all" "update")))
+    (is (apply-compare "deps.edn" "add-multiple" "add" "reagent@1.2.0" "org.clojure/java.jdbc@0.7.12")))
   (testing "shadow-cljs.edn"
-    (is (apply-compare "project.clj" "update-all" "update")))
+    (is (apply-compare "shadow-cljs.edn" "add-multiple" "add" "reagent@1.2.0" "org.clojure/java.jdbc@0.7.12")))
   (testing "bb.edn"
-    (is (apply-compare "project.clj" "update-all" "update"))))
+    (is (apply-compare "bb.edn" "add-multiple" "add" "reagent@1.2.0" "org.clojure/java.jdbc@0.7.12"))))
+
+(deftest add-reagent-1.2.0
+  (io/make-parents (str TEMP-FOLDER "add-reagent-1.2.0/FILE"))
+  (testing "project.clj"
+    (is (apply-compare "project.clj" "add-reagent-1.2.0" "add" "reagent@1.2.0")))
+  (testing "deps.edn"
+    (is (apply-compare "deps.edn" "add-reagent-1.2.0" "add" "reagent@1.2.0")))
+  (testing "shadow-cljs.edn"
+    (is (apply-compare "shadow-cljs.edn" "add-reagent-1.2.0" "add" "reagent@1.2.0")))
+  (testing "bb.edn"
+    (is (apply-compare "bb.edn" "add-reagent-1.2.0"  "add" "reagent@1.2.0"))))

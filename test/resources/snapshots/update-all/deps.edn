@@ -1,5 +1,0 @@
-{:paths ["src" "test"],
- :deps
-   {reagent/reagent {:mvn/version "1.2.0"},
-    emotion-cljs/emotion-cljs {:mvn/version "0.2.0"},
-    metosin/malli {:mvn/version "0.11.0"}}}
