@@ -239,3 +239,69 @@
                                        :wrap-coll? nil}})
               (as-> new-conf (spit config-path new-conf))))
         (println (str identifier) current-version "is up to date. Skipping.")))))
+
+(defn get-project-type
+  "- `config-path` - the full path to the config file as a string
+
+  Returns
+  - `:shadow` for shadow-cljs.edn
+  - `:lein` for project.clj
+  - `:default` for everything else
+  "
+  [config-path]
+  (let [config-name (-> config-path
+                        (str/split #"/")
+                        (last))]
+    (case config-name
+      "shadow-cljs.edn" :shadow
+      "project.clj" :lein
+      :default)))
+
+(defn create-keys
+  "- `config-path` - the full path to the config file as a string
+
+  Returns
+  - `:dependencies` for `:lein` and `:shadow`
+  - `:deps` for `:default`
+  "
+  [project-type]
+  (case project-type
+    (or :lein :shadow) :dependencies
+    :default :deps))
+
+(defn traverse-zip-map
+  "- `zloc` - a zipper object created by rewrite-clj
+  - `keys` - a vector of keys
+ 
+  Traverses the zipper object using `z/get`, `z` being
+ the `rewrite-clj.zip` namespace, using `keys` from left
+ to right"
+  [zloc keys]
+  (loop [zloc zloc
+         keys keys]
+    (if (not-empty keys)
+      (recur (z/get zloc (first keys))
+             (rest keys))
+      zloc)))
+
+(defmulti get-dep-vec-map
+  (fn [m] (:project-type m)))
+
+(defmethod get-dep-vec-map :shadow
+  [{:keys [zloc keys]}]
+  (-> zloc
+      (traverse-zip-map keys)
+      z/string
+      println))
+
+(defn apply-operation
+  [{:keys [config-path id operation]}]
+  (let [config-zip (z/of-string (slurp config-path))
+        project-type (get-project-type config-path)
+        access-keys [(create-keys project-type)]
+        dep-vec-map (get-dep-vec-map {:zloc config-zip
+                                      :keys access-keys
+                                      :project-type project-type})]
+    dep-vec-map))
+
+(apply-operation {:config-path "test/resources/input/shadow-cljs.edn"})
