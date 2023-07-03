@@ -5,7 +5,6 @@
 (def INPUT-FOLDER "test/resources/input/")
 (def SNAPSHOTS-FOLDER "test/resources/snapshots/")
 (def FILES ["project.clj" "deps.edn" "bb.edn" "shadow-cljs.edn"])
-; (def TARGETS ["add-reagent-1.2.0" "add-multiple"])
 (def TARGETS [{:name "add-reagent-1.2.0"
                :commands ["add" "reagent@1.2.0"]}
               {:name "add-multiple"
@@ -31,8 +30,4 @@
    (for [{:keys [name commands]} TARGETS]
      (do (println name "snapshots")
          (mapv #(apply create-snapshot (concat [% name] commands)) FILES))))
-  ; (println "Creating snapshots")
-  ; (println "add-reagent-1.2.0 snapshots")
-  ; (mapv #(create-snapshot % "add-reagent-1.2.0" "add" "reagent@1.2.0") FILES)
-  ; (mapv #(create-snapshot % "add-multiple" "add" "reagent@1.2.0" "org.clojure/java.jdbc@0.7.12") FILES)
   (println "All snapshots have been created"))
