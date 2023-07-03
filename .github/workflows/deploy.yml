@@ -5,6 +5,8 @@ on:
       - main
   push:
     paths: ['src/**']
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
