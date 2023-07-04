@@ -136,9 +136,16 @@
     (println "Adding" identifier version)
     (case dep-type
       :map (assoc deps (symbol identifier) {:mvn/version version})
-      :vector (-> (conj deps [(symbol identifier) version])
-                  (distinct)
-                  (vec)))))
+      :vector (let [dep-exists?  (-> #(= (symbol identifier) (first %))
+                                     (filter deps)
+                                     (seq))]
+                (if dep-exists?
+                  (vec (map #(if (= (symbol identifier) (first %))
+                               (vec (concat [(symbol identifier) version] (rest (rest %))))
+                               %) deps))
+                  (-> (conj deps [(symbol identifier) version])
+                      (distinct)
+                      (vec)))))))
 
 (defn remove-dependency
   [{:keys [deps id]}]
