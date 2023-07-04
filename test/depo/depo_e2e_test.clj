@@ -47,7 +47,7 @@
         snapshot (str SNAPSHOTS-FOLDER "/" target-folder "/" filename)]
     (io/copy (io/file input) (io/file target))
     (apply sh (concat ["clojure" "-M" "-m" "depo.core" "-f" target] commands))
-    (= (slurp snapshot) (slurp target))))
+    (is (= (slurp snapshot) (slurp target)))))
 
 (doall
  (for [{:keys [name commands]} tests]
@@ -58,4 +58,4 @@
                #(doall
                  (for [f FILES]
                    (testing f
-                     (is (apply apply-compare (concat [f name] commands))))))))))
+                     (apply apply-compare (concat [f name] commands)))))))))

@@ -1,35 +1,9 @@
 (ns depo.readwrite
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [depo.parser :as dp]
             [depo.resolver :as r]
             [zprint.core :as zp]
             [rewrite-clj.zip :as z]))
-
-(defmulti get-all-dependency-names
-  "Returns all the dependencies from the config"
-  (fn [config-path] (last (str/split config-path #"/"))))
-
-(defmethod get-all-dependency-names :default
-  [config-path]
-  (let [zloc (z/of-string (slurp config-path))
-        dep-key (if (= (last (str/split config-path #"/")) "shadow-cljs.edn") :dependencies :deps)]
-    (-> zloc
-        (z/get dep-key)
-        (z/string)
-        (read-string)
-        (keys)
-        (as-> keys (map str keys)))))
-
-(defmethod get-all-dependency-names "project.clj"
-  [config-path]
-  (let [zloc (z/of-string (slurp config-path))]
-    (-> zloc
-        (z/find-value z/next :dependencies)
-        (z/next)
-        (z/string)
-        (read-string)
-        (as-> dep-vec (map #(str (first %)) dep-vec)))))
 
 (defn create-identifier
   [groupID artifactID dep-type]
@@ -83,6 +57,36 @@
     (map? deps) :map
     (vector? deps) :vector))
 
+(defn traverse-zip-map
+  "- `zloc` - a zipper object created by rewrite-clj
+  - `keys` - a vector of keys
+ 
+  Traverses the zipper object using `z/get`, `z` being
+ the `rewrite-clj.zip` namespace, using `keys` from left
+ to right"
+  [zloc keys]
+  (loop [zloc zloc
+         keys keys]
+    (if (not-empty keys)
+      (recur (z/get zloc (first keys))
+             (rest keys))
+      zloc)))
+
+(defn get-dep-vec-map
+  [{:keys [zloc keys project-type]}]
+  (-> zloc
+      (as-> zipper
+            (case project-type
+              :lein (-> (z/find-value zipper z/next (first keys))
+                        (z/next)
+                        (as-> zpos
+                              (if (not-empty (rest keys))
+                                (traverse-zip-map zpos (rest keys))
+                                zpos)))
+              (traverse-zip-map zipper keys)))
+      (z/string)
+      (read-string)))
+
 (defn get-project-type
   "- `config-path` - the full path to the config file as a string
 
@@ -100,42 +104,27 @@
       "project.clj" :lein
       :default)))
 
-(defn traverse-zip-map
-  "- `zloc` - a zipper object created by rewrite-clj
-  - `keys` - a vector of keys
- 
-  Traverses the zipper object using `z/get`, `z` being
- the `rewrite-clj.zip` namespace, using `keys` from left
- to right"
-  [zloc keys]
-  (loop [zloc zloc
-         keys keys]
-    (if (not-empty keys)
-      (recur (z/get zloc (first keys))
-             (rest keys))
-      zloc)))
-
-(defmulti get-dep-vec-map
-  (fn [m] (:project-type m)))
-
-(defmethod get-dep-vec-map :default
-  [{:keys [zloc keys]}]
-  (-> zloc
-      (traverse-zip-map keys)
-      (z/string)
-      (read-string)))
-
-(defmethod get-dep-vec-map :lein
-  [{:keys [zloc keys]}]
-  (-> zloc
-      (z/find-value z/next (first keys))
-      (z/next)
-      (as-> zpos
-            (if (not-empty (rest keys))
-              (traverse-zip-map zpos (rest keys))
-              zpos))
-      (z/string)
-      (read-string)))
+(defn get-all-dependency-names
+  [config-path]
+  (let [zloc (z/of-string (slurp config-path))
+        project-type (get-project-type config-path)
+        deps-key (case project-type
+                   (or :shadow :lein) :dependencies
+                   :deps)]
+    (-> zloc
+        (as-> zipper
+              (case project-type
+                :lein (-> zipper
+                          (z/find-value z/next deps-key)
+                          (z/next))
+                (z/get zipper deps-key)))
+        (z/string)
+        (read-string)
+        (as-> vec-map
+              (case (get-dependency-type vec-map)
+                :map (keys vec-map)
+                :vector (map #(str (first %)) vec-map)))
+        (println))))
 
 (defn add-dependency
   [{:keys [deps id]}]
@@ -269,6 +258,6 @@
          (spit config-path))))
          ; (println))))
 
-; (apply-operation {:config-path "test/resources/input/bb.edn"
+; (apply-operation {:config-path "test/resources/input/shadow-cljs.edn"
 ;                   :id "reagent"
 ;                   :operation :add})

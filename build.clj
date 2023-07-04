@@ -3,7 +3,7 @@
             [deps-deploy.deps-deploy :as dd]))
 
 (def lib 'org.clojars.some/depo)
-(def version "0.1.23")
+(def version "0.1.24")
 (def jar-file (format "target/%s-%s.jar" (name lib) version))
 (def class-dir "target/classes")
 (def url "https://github.com/somecho/depo")
