@@ -166,27 +166,27 @@
     (vector? deps)
     (first (get-dependency-data deps identifier))))
 
-(defn update-dependency
-  [{:keys [deps id]}]
-  (let [{:keys [groupID artifactID version]} (r/conform-version id)
-        identifier (create-identifier groupID
-                                      artifactID
-                                      (get-dependency-type deps))
-        current-version (get-current-version deps (symbol identifier))]
-    (if (= current-version version)
-      (do
-        (println identifier current-version "is up-to-date. Skipping.")
-        deps)
-      (do
-        (println "Updating" identifier current-version "->" version)
-        (cond
-          (map? deps) (assoc deps (symbol identifier) {:mvn/version version})
-          (vector? deps) (mapv
-                          #(if (= (symbol identifier) (first %))
-                             (vec (concat [(symbol identifier) version]
-                                          (rest (rest %))))
-                             %)
-                          deps))))))
+; (defn update-dependency
+;   [{:keys [deps id]}]
+;   (let [{:keys [groupID artifactID version]} (r/conform-version id)
+;         identifier (create-identifier groupID
+;                                       artifactID
+;                                       (get-dependency-type deps))
+;         current-version (get-current-version deps (symbol identifier))]
+;     (if (= current-version version)
+;       (do
+;         (println identifier current-version "is up-to-date. Skipping.")
+;         deps)
+;       (do
+;         (println "Updating" identifier current-version "->" version)
+;         (cond
+;           (map? deps) (assoc deps (symbol identifier) {:mvn/version version})
+;           (vector? deps) (mapv
+;                           #(if (= (symbol identifier) (first %))
+;                              (vec (concat [(symbol identifier) version]
+;                                           (rest (rest %))))
+;                              %)
+;                           deps))))))
 
 (defn zip-vec-add-newlines
   "- `zloc` - a zipper object of a vector created by rewrite-clj
@@ -198,37 +198,37 @@
                    z
                    (z/insert-newline-right z))) zloc))
 
-(defn replace-dependencies
-  "Takes in a map with the following keys
-  - `:project-type` - `:lein`, `:shadow` or `:default`
-  - `:zloc` - zipper object of config file created by rewrite-clj
-  - `:keys` -  a vector of keys telling Depo which dependencies to replace
-  - `:new-deps` - a vector or map of the newly written dependencies
- 
-  Replaces the specified dependencies in a map and returns
-  a string formatted by zprint"
-  [{:keys [zloc keys new-deps project-type]}]
-  (-> zloc
-      (as-> zipper
-            (case project-type
-              :lein (-> zipper
-                        (z/find-value z/next (first keys))
-                        (z/next))
-              (traverse-zip-map zipper keys)))
-      (z/replace new-deps)
-      (as-> zipper
-            (case project-type
-              :default zipper
-              (zip-vec-add-newlines zipper)))
-      (z/root-string)
-      (zp/zprint-str {:parse-string? true
-                      :style (case project-type
-                               :default :map-nl
-                               :indent-only)
-                      :map {:sort? false
-                            :hang? false}
-                      :vector {:hang? false
-                               :wrap-coll? nil}})))
+; (defn replace-dependencies
+;   "Takes in a map with the following keys
+;   - `:project-type` - `:lein`, `:shadow` or `:default`
+;   - `:zloc` - zipper object of config file created by rewrite-clj
+;   - `:keys` -  a vector of keys telling Depo which dependencies to replace
+;   - `:new-deps` - a vector or map of the newly written dependencies
+
+;   Replaces the specified dependencies in a map and returns
+;   a string formatted by zprint"
+;   [{:keys [zloc keys new-deps project-type]}]
+;   (-> zloc
+;       (as-> zipper
+;             (case project-type
+;               :lein (-> zipper
+;                         (z/find-value z/next (first keys))
+;                         (z/next))
+;               (traverse-zip-map zipper keys)))
+;       (z/replace new-deps)
+;       (as-> zipper
+;             (case project-type
+;               :default zipper
+;               (zip-vec-add-newlines zipper)))
+;       (z/root-string)
+;       (zp/zprint-str {:parse-string? true
+;                       :style (case project-type
+;                                :default :map-nl
+;                                :indent-only)
+;                       :map {:sort? false
+;                             :hang? false}
+;                       :vector {:hang? false
+;                                :wrap-coll? nil}})))
 
 (defn get-deps
   [zloc keys project-type]
@@ -250,7 +250,7 @@
       :map (z/get zloc identifier)
       :vector (loop [cur (z/down zloc)]
                 (if (= (z/string (z/down cur)) (str identifier))
-                  true
+                  cur
                   (when-not (z/rightmost? cur)
                     (recur (z/right cur))))))))
 
@@ -320,6 +320,61 @@
                                (z/remove))))
               (z/root-string))))))
 
+(defn update-dependency
+  [{:keys [zloc keys project-type id]}]
+  (let [{:keys [groupID artifactID version]} (r/conform-version id)
+        dep-type (case project-type :default :map :vector)
+        identifier (symbol (create-identifier groupID
+                                              artifactID
+                                              dep-type))
+        dep-zloc (get-deps zloc keys project-type)
+        dep-exists (dep-exists? dep-zloc identifier)
+        cur-version (when dep-exists
+                      (case dep-type
+                        :map (-> dep-exists
+                                 (z/get :mvn/version)
+                                 z/string
+                                 read-string)
+                        :vector (-> dep-exists
+                                    z/down
+                                    z/right
+                                    z/string
+                                    read-string)))]
+    (if-not dep-exists
+      (do (println identifier "is not a dependency. Skipping.")
+          (z/root-string dep-zloc))
+      (if (= cur-version version)
+        (println identifier version "is up-to-date")
+        (do (println "Updating" identifier cur-version "->" version)
+            (-> dep-zloc
+                (as-> dep-zloc
+                      (case dep-type
+                        :vector  (-> dep-zloc
+                                     (as-> dz
+                                           (if-not dep-exists
+                                             (-> (z/down dz)
+                                                 (z/rightmost)
+                                                 (z/insert-newline-right)
+                                                 (z/up)
+                                                 (z/append-child [identifier version]))
+                                             (loop [cur (z/down dz)]
+                                               (if (= (z/string (z/down cur)) (str identifier))
+                                                 (-> (z/down cur)
+                                                     (z/next)
+                                                     (z/replace version))
+                                                 (when-not (z/rightmost? cur)
+                                                   (recur (z/right cur))))))))
+                        :map (-> dep-zloc
+                                 (as-> dz
+                                       (if dep-exists
+                                         dz
+                                         (-> (z/down dz)
+                                             (z/rightmost)
+                                             (z/insert-newline-right)
+                                             (z/up))))
+                                 (z/assoc (symbol identifier) {:mvn/version version}))))
+                (z/root-string)))))))
+
 (defn operate
   "- `operation` - `:add`,`:update` or `:remove`
   - `packet` - a map containing the keys `:deps` and `:id`
@@ -351,8 +406,11 @@
                             :zloc config-zip
                             :project-type project-type
                             :keys access-keys})
-        println)))
+        (zp/zprint-str {:parse-string? true
+                        :style :indent-only})
+        (as-> newconf (spit newconf config-path)))))
+        ; println)))
 
-(apply-operation {:config-path "test/resources/input/shadow-cljs.edn"
-                  :id "check"
-                  :operation :remove})
+; (apply-operation {:config-path "test/resources/input/deps.edn"
+;                   :id "org.flatland/ordered"
+;                   :operation :remove})
