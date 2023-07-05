@@ -146,17 +146,17 @@
 ;                       (distinct)
 ;                       (vec)))))))
 
-(defn remove-dependency
-  [{:keys [deps id]}]
-  (let [{:keys [groupID artifactID version]} (r/conform-version id)
-        dep-type (get-dependency-type deps)
-        identifier (create-identifier groupID
-                                      artifactID
-                                      dep-type)]
-    (println "Removing" identifier version)
-    (case dep-type
-      :map (dissoc deps (symbol identifier))
-      :vector (vec (filter #(not= (symbol identifier) (first %)) deps)))))
+; (defn remove-dependency
+;   [{:keys [deps id]}]
+;   (let [{:keys [groupID artifactID version]} (r/conform-version id)
+;         dep-type (get-dependency-type deps)
+;         identifier (create-identifier groupID
+;                                       artifactID
+;                                       dep-type)]
+;     (println "Removing" identifier version)
+;     (case dep-type
+;       :map (dissoc deps (symbol identifier))
+;       :vector (vec (filter #(not= (symbol identifier) (first %)) deps)))))
 
 (defn get-current-version
   [deps identifier]
@@ -291,7 +291,34 @@
                                             (z/replace version))
                                         (when-not (z/rightmost? cur)
                                           (recur (z/right cur))))))))))
-        z/print-root)))
+        z/root-string)))
+
+(defn remove-dependency
+  [{:keys [zloc keys project-type id]}]
+  (let [{:keys [groupID artifactID version]} (r/conform-version id)
+        dep-type (case project-type :default :map :vector)
+        identifier (symbol (create-identifier groupID
+                                              artifactID
+                                              dep-type))
+        dep-zloc (get-deps zloc keys project-type)
+        dep-exists (dep-exists? dep-zloc identifier)]
+    (if-not dep-exists
+      (do (println identifier "is not a dependency. Skipping.")
+          dep-zloc)
+      (do (println "Removing" identifier)
+          (-> dep-zloc
+              (as-> dep-zloc
+                    (case dep-type
+                      :vector (loop [cur (z/down dep-zloc)]
+                                (if (= (z/string (z/down cur)) (str identifier))
+                                  (z/remove cur)
+                                  (when-not (z/rightmost? cur)
+                                    (recur (z/right cur)))))
+                      :map (-> dep-zloc
+                               (z/get identifier)
+                               (z/remove)
+                               (z/remove))))
+              (z/root-string))))))
 
 (defn operate
   "- `operation` - `:add`,`:update` or `:remove`
@@ -323,8 +350,9 @@
                             :id id
                             :zloc config-zip
                             :project-type project-type
-                            :keys access-keys}))))
+                            :keys access-keys})
+        println)))
 
-(apply-operation {:config-path "test/resources/input/bb.edn"
-                  :id "reagent"
-                  :operation :add})
+(apply-operation {:config-path "test/resources/input/shadow-cljs.edn"
+                  :id "check"
+                  :operation :remove})
