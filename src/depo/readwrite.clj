@@ -263,6 +263,7 @@
                                               dep-type))
         dep-zloc (get-deps zloc keys project-type)
         dep-exists (dep-exists? dep-zloc identifier)]
+    (println "Adding" identifier version)
     (-> dep-zloc
         (as-> dz
               (case dep-type
