@@ -1,4 +1,6 @@
 (ns depo.dispatch
+  "Functions related to the control flow of the CLI,
+  as well as IO operations, such as reading and writing the config."
   (:require [clojure.java.io :as io]
             [depo.schema :as schema]
             [depo.utils :as dutils]
@@ -8,11 +10,15 @@
             [zprint.core :as zp]))
 
 (defn skip-procedure
+  "Takes in a `depo.schema/PROCEDURE` map and returns it,
+  printing `reason` on the way."
   [{:keys [zloc]} & reason]
   (apply println (concat reason ["Skipping."]))
   zloc)
 
 (defn ignore-pass
+  "Takes in a `depo.schema/PROCEDURE` map and 
+  checks whether the operation `f` should be skipped."
   [{:keys [dep-data deps-type identifier]
     :as procedure} f]
   (case deps-type
@@ -25,6 +31,14 @@
     :vector (f)))
 
 (defn dispatch
+  "Takes in a `depo.schema/PROCEDURE` map and
+  dispatches the appropriate operations on it.
+  Returns a zipper object after the operation.
+  
+  Operations
+  - `:add`
+  - `:remove`
+  - `:update`"
   [{:keys [operation dep-exists identifier]
     :as procedure}]
   (case operation
@@ -41,6 +55,13 @@
               (skip-procedure procedure identifier "is not a dependency."))))
 
 (defn apply-operation
+  "Takes in a map containing
+  - `:config-path` - the path to the config file
+  - `:id` - the CLI argument 
+  - `:operation` - `:add`, `:update` or `:remove`
+ 
+  Creates a `depo.schema/PROCEDURE` map to dispatch operations.
+  It writes the resulting configuration into `config-path`. "
   [{:keys [config-path id operation]}]
   (let [config-zip (z/of-string (slurp config-path))
         project-type (dutils/get-project-type config-path)
