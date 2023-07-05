@@ -1,5 +1,15 @@
-(ns depo.validate
+(ns depo.schema
   (:require [malli.core :as m]))
+
+(def PROCEDURE [:map
+                [:zloc [:vector :any]]
+                [:dep-exists :boolean]
+                [:identifier :symbol]
+                [:argument :string]
+                [:project-type [:enum :lein :shadow :default]]
+                [:deps-type [:enum :map :vector]]
+                [:dep-data :any]
+                [:operation [:enum :add :remove :update]]])
 
 (defn valid-id?
   "Returns `true` if the groupID or artifactID are valid IDs.
@@ -12,7 +22,6 @@
   [ver]
   (m/validate [:re #"^(\d+\.)+\d[/-]?[a-zA-Z0-9]*$"] ver))
 
-(valid-version? "0.11.1-alpha")
 (defn valid-dependency-map?
   "Given a map with dependency coordinate data, return true if valid."
   [{:keys [groupID artifactID version]}]

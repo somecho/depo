@@ -1,6 +1,43 @@
-(ns depo.parser
+(ns depo.utils
   (:require [clojure.string :as s]
             [clojure.xml :as xml]))
+
+(defn create-identifier
+  [groupID artifactID dep-type]
+  (case dep-type
+    :map (str groupID "/" artifactID)
+    :vector (if (= groupID artifactID)
+              artifactID
+              (str groupID "/" artifactID))))
+
+(defn create-keys
+  "- `config-path` - the full path to the config file as a string
+
+  Returns
+  - `:dependencies` for `:lein` and `:shadow`
+  - `:deps` for `:default`
+  "
+  [project-type]
+  (case project-type
+    (or :lein :shadow) :dependencies
+    :default :deps))
+
+(defn get-project-type
+  "- `config-path` - the full path to the config file as a string
+
+  Returns
+  - `:shadow` for shadow-cljs.edn
+  - `:lein` for project.clj
+  - `:default` for everything else
+  "
+  [config-path]
+  (let [config-name (-> config-path
+                        (s/split #"/")
+                        (last))]
+    (case config-name
+      "shadow-cljs.edn" :shadow
+      "project.clj" :lein
+      :default)))
 
 (defn parse
   "Given a dependency string that follows the following schema

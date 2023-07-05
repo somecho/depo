@@ -1,17 +1,13 @@
 {:deps
- {reagent/reagent {:mvn/version "1.2.0"},
-  metosin/malli {:mvn/version "0.10.0"},
-  lambdaisland/kaocha {:local/root "."},
-  lambdaisland/open-source
-  {:git/url "https://github.com/lambdaisland/open-source",
-   :git/sha "4d6019ed2805f701c0d626732c5a886542e3b83b"}},
-
+ {reagent/reagent {:mvn/version "1.2.0"}
+  metosin/malli {:mvn/version "0.10.0"}
+  lambdaisland/kaocha {:local/root "."}
+  lambdaisland/open-source {:git/url "https://github.com/lambdaisland/open-source"
+                            :git/sha "4d6019ed2805f701c0d626732c5a886542e3b83b"
+                            #_#_:local/root "../open-source"}}
  :tasks
  {test:bb
-  {:extra-deps {nubank/matcher-combinators {:mvn/version "3.8.5"}},
-   :extra-paths ["test/bb"],
-   :requires ([kaocha.runner]),
-   :task
-   (apply kaocha.runner/-main
-     "bb" "--config-file"
-     "bb-tests.edn" *command-line-args*)}}}
+  {:extra-deps {nubank/matcher-combinators {:mvn/version "3.8.5"}}
+   :extra-paths ["test/bb"]
+   :requires ([kaocha.runner])
+   :task (apply kaocha.runner/-main "bb" "--config-file" "bb-tests.edn" *command-line-args*)}}}
