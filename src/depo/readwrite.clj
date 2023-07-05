@@ -123,29 +123,28 @@
         (as-> vec-map
               (case (get-dependency-type vec-map)
                 :map (keys vec-map)
-                :vector (map #(str (first %)) vec-map)))
-        (println))))
+                :vector (map #(str (first %)) vec-map))))))
 
-(defn add-dependency
-  [{:keys [deps id]}]
-  (let [{:keys [groupID artifactID version]} (r/conform-version id)
-        dep-type (get-dependency-type deps)
-        identifier (create-identifier groupID
-                                      artifactID
-                                      dep-type)]
-    (println "Adding" identifier version)
-    (case dep-type
-      :map (assoc deps (symbol identifier) {:mvn/version version})
-      :vector (let [dep-exists?  (-> #(= (symbol identifier) (first %))
-                                     (filter deps)
-                                     (seq))]
-                (if dep-exists?
-                  (vec (map #(if (= (symbol identifier) (first %))
-                               (vec (concat [(symbol identifier) version] (rest (rest %))))
-                               %) deps))
-                  (-> (conj deps [(symbol identifier) version])
-                      (distinct)
-                      (vec)))))))
+; (defn add-dependency
+;   [{:keys [deps id]}]
+;   (let [{:keys [groupID artifactID version]} (r/conform-version id)
+;         dep-type (get-dependency-type deps)
+;         identifier (create-identifier groupID
+;                                       artifactID
+;                                       dep-type)]
+;     (println "Adding" identifier version)
+;     (case dep-type
+;       :map (assoc deps (symbol identifier) {:mvn/version version})
+;       :vector (let [dep-exists?  (-> #(= (symbol identifier) (first %))
+;                                      (filter deps)
+;                                      (seq))]
+;                 (if dep-exists?
+;                   (vec (map #(if (= (symbol identifier) (first %))
+;                                (vec (concat [(symbol identifier) version] (rest (rest %))))
+;                                %) deps))
+;                   (-> (conj deps [(symbol identifier) version])
+;                       (distinct)
+;                       (vec)))))))
 
 (defn remove-dependency
   [{:keys [deps id]}]
@@ -230,6 +229,69 @@
                             :hang? false}
                       :vector {:hang? false
                                :wrap-coll? nil}})))
+
+(defn get-deps
+  [zloc keys project-type]
+  (case project-type
+    :lein (-> (z/find-value zloc z/next (first keys))
+              (z/next)
+              (as-> zpos
+                    (if (not-empty (rest keys))
+                      (traverse-zip-map zpos (rest keys))
+                      zpos)))
+    (traverse-zip-map zloc keys)))
+
+(defn dep-exists?
+  [zloc identifier]
+  (let [deps-type (cond
+                    (z/map? zloc) :map
+                    (z/vector? zloc) :vector)]
+    (case deps-type
+      :map (z/get zloc identifier)
+      :vector (loop [cur (z/down zloc)]
+                (if (= (z/string (z/down cur)) (str identifier))
+                  true
+                  (when-not (z/rightmost? cur)
+                    (recur (z/right cur))))))))
+
+(defn add-dependency
+  [{:keys [zloc keys project-type id]}]
+  (let [{:keys [groupID artifactID version]} (r/conform-version id)
+        dep-type (case project-type :default :map :vector)
+        identifier (symbol (create-identifier groupID
+                                              artifactID
+                                              dep-type))
+        dep-zloc (get-deps zloc keys project-type)
+        dep-exists (dep-exists? dep-zloc identifier)]
+    (-> dep-zloc
+        (as-> dz
+              (case dep-type
+                :map (-> dz
+                         (as-> dz
+                               (if dep-exists
+                                 dz
+                                 (-> (z/down dz)
+                                     (z/rightmost)
+                                     (z/insert-newline-right)
+                                     (z/up))))
+                         (z/assoc (symbol identifier) {:mvn/version version}))
+                :vector (-> dz
+                            (as-> dz
+                                  (if-not dep-exists
+                                    (-> (z/down dz)
+                                        (z/rightmost)
+                                        (z/insert-newline-right)
+                                        (z/up)
+                                        (z/append-child [identifier version]))
+                                    (loop [cur (z/down dz)]
+                                      (if (= (z/string (z/down cur)) (str identifier))
+                                        (-> (z/down cur)
+                                            (z/next)
+                                            (z/replace version))
+                                        (when-not (z/rightmost? cur)
+                                          (recur (z/right cur))))))))))
+        z/print-root)))
+
 (defn operate
   "- `operation` - `:add`,`:update` or `:remove`
   - `packet` - a map containing the keys `:deps` and `:id`
@@ -255,16 +317,13 @@
         access-keys [(create-keys project-type)]
         dep-vec-map (get-dep-vec-map {:zloc config-zip
                                       :keys access-keys
-                                      :project-type project-type})
-        new-deps (operate operation {:deps dep-vec-map
-                                     :id id})]
-    (->> (replace-dependencies {:zloc config-zip
-                                :project-type project-type
-                                :new-deps new-deps
-                                :keys access-keys})
-         (spit config-path))))
-         ; (println))))
+                                      :project-type project-type})]
+    (-> (operate operation {:deps dep-vec-map
+                            :id id
+                            :zloc config-zip
+                            :project-type project-type
+                            :keys access-keys}))))
 
-; (apply-operation {:config-path "test/resources/input/shadow-cljs.edn"
-;                   :id "reagent"
-;                   :operation :add})
+(apply-operation {:config-path "test/resources/input/bb.edn"
+                  :id "reagent"
+                  :operation :add})
