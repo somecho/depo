@@ -408,9 +408,9 @@
                             :keys access-keys})
         (zp/zprint-str {:parse-string? true
                         :style :indent-only})
-        (as-> newconf (spit newconf config-path)))))
+        (as-> newconf (spit config-path newconf)))))
         ; println)))
 
-; (apply-operation {:config-path "test/resources/input/deps.edn"
-;                   :id "org.flatland/ordered"
-;                   :operation :remove})
+(apply-operation {:config-path "deps.edn"
+                  :id "org.flatland/ordered"
+                  :operation :add})

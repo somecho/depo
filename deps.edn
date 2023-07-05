@@ -3,7 +3,8 @@
         cli-matic/cli-matic {:mvn/version "0.5.4"},
         clj-http/clj-http {:mvn/version "3.12.3"},
         metosin/malli {:mvn/version "0.11.0"},
-        zprint/zprint {:mvn/version "1.2.7"}}
+        zprint/zprint {:mvn/version "1.2.7"}
+        org.flatland/ordered {:mvn/version "1.15.11"}}
  :aliases
  {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.85.1342"}}
          :main-opts ["-m" "kaocha.runner"]}
