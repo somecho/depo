@@ -25,7 +25,7 @@
 
 (defn delete-directories []
   (for [{:keys [name]} tests]
-    (delete-directory (io/file (str "test/resources/temp/" name "/FILE")))))
+    (delete-directory (io/file (str "test/resources/temp/" name)))))
 
 (defn before-after [f]
   (setup-directories)

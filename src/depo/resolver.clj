@@ -1,9 +1,9 @@
 (ns depo.resolver
   (:require [clojure.string :as s]
             [clj-http.client :as client]
-            [depo.parser :as p]
             [depo.errors :as e]
-            [depo.validate :as v]))
+            [depo.utils :as dutils]
+            [depo.schema :as schema]))
 
 (def ^:no-doc repos {:clojars "https://repo.clojars.org"
                      :central "https://repo1.maven.org/maven2"})
@@ -25,13 +25,13 @@
   Returns a vec containing versioning metadata, which includes
   release version, all published versions and, if it exists, latest version."
   [arg]
-  (let [dep-map (p/parse arg)
+  (let [dep-map (dutils/parse arg)
         path (form-path dep-map)
         urls (map #(s/join "/" [(val %) path "maven-metadata.xml"]) repos)
         metadata (-> (try (client/get (first urls))
                           (catch Exception _ (client/get (second urls))))
                      :body
-                     p/xml->map)]
+                     dutils/xml->map)]
     (-> (:content metadata)
         (as-> content
               (filter #(= (:tag %) :versioning) content))
@@ -87,8 +87,8 @@
   If a version is provided, it will check if the version exists. If it
   doesn't, it will default to use the release version."
   [arg]
-  (let [dep-map (p/parse arg)]
-    (if-not (v/valid-dependency-map? dep-map)
+  (let [dep-map (dutils/parse arg)]
+    (if-not (schema/valid-dependency-map? dep-map)
       (println (e/err :invalid-argument {:argument arg}))
       (if-not (:version dep-map)
         (assoc dep-map :version (get-release-version arg))

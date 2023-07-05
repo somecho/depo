@@ -1,13 +1,14 @@
 (ns ^:no-doc depo.core
   (:require [cli-matic.core :refer [run-cmd]]
-            [depo.readwrite :as rw]
-            [depo.errors :as e]))
+            [depo.dispatch :as dd]
+            [depo.errors :as e]
+            [depo.zoperations :as zo]))
 
 (defn add-cmd [{:keys [_arguments file]}]
   (let [args  _arguments
-        config-path (if file file (rw/get-config))]
+        config-path (if file file (dd/get-config))]
     (if-not (empty? args)
-      (do (mapv #(rw/apply-operation {:config-path config-path
+      (do (mapv #(dd/apply-operation {:config-path config-path
                                       :id %
                                       :operation :add}) args)
           (println "Done!"))
@@ -15,9 +16,9 @@
 
 (defn remove-cmd [{:keys [_arguments file]}]
   (let [args  _arguments
-        config-path (if file file (rw/get-config))]
+        config-path (if file file (dd/get-config))]
     (if-not (empty? args)
-      (do (mapv #(rw/apply-operation {:config-path config-path
+      (do (mapv #(dd/apply-operation {:config-path config-path
                                       :id %
                                       :operation :remove}) args)
           (println "Done!"))
@@ -25,21 +26,21 @@
 
 (defn update-cmd [{:keys [_arguments file]}]
   (let [args  _arguments
-        config-path (if file file (rw/get-config))]
+        config-path (if file file (dd/get-config))]
     (if (empty? args)
-      (do (mapv #(rw/apply-operation {:config-path config-path
+      (do (mapv #(dd/apply-operation {:config-path config-path
                                       :id %
                                       :operation :update})
-                (rw/get-all-dependency-names config-path))
+                (zo/get-all-dependency-names config-path))
           (println "Done!"))
-      (mapv #(rw/apply-operation {:config-path config-path
+      (mapv #(dd/apply-operation {:config-path config-path
                                   :id %
                                   :operation :update}) args))))
 
 (def CONFIGURATION
   {:command "depo"
    :description "Manage dependencies for Clojure projects easily"
-   :version "0.3.28"
+   :version "0.4.29"
    :opts [{:as "path to configuration file"
            :default nil
            :option "file"
