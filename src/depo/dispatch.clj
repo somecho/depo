@@ -2,6 +2,7 @@
   "Functions related to the control flow of the CLI,
   as well as IO operations, such as reading and writing the config."
   (:require [clojure.java.io :as io]
+            [depo.errors :as e]
             [depo.schema :as schema]
             [depo.utils :as dutils]
             [depo.zoperations :as zo]
@@ -39,20 +40,28 @@
   - `:add`
   - `:remove`
   - `:update`"
-  [{:keys [operation dep-exists identifier]
+  [{:keys [argument operation dep-exists identifier zloc]
     :as procedure}]
-  (case operation
-    :add (if dep-exists
-           (ignore-pass procedure
-                        #(zo/update-dependency procedure))
-           (zo/append-dependency procedure))
-    :remove (if dep-exists
-              (zo/remove-dependency procedure)
-              (skip-procedure identifier "is not a dependency."))
-    :update (if dep-exists
-              (ignore-pass procedure
-                           #(zo/update-dependency procedure))
-              (skip-procedure procedure identifier "is not a dependency."))))
+  (try (case operation
+         :add (if dep-exists
+                (ignore-pass procedure
+                             #(zo/update-dependency procedure))
+                (zo/append-dependency procedure))
+         :remove (if dep-exists
+                   (zo/remove-dependency procedure)
+                   (skip-procedure procedure identifier "is not a dependency."))
+         :update (if dep-exists
+                   (ignore-pass procedure
+                                #(zo/update-dependency procedure))
+                   (skip-procedure procedure identifier "is not a dependency.")))
+       (catch Exception e (do  (-> e
+                                   ex-data
+                                   :status
+                                   str
+                                   keyword
+                                   (e/err {:argument argument})
+                                   println)
+                               zloc))))
 
 (defn apply-operation
   "Takes in a map containing
@@ -86,8 +95,13 @@
           (z/root-string)
           (zp/zprint-str {:parse-string? true
                           :style :indent-only})
+          ; (println))
           (as-> new-conf (spit config-path new-conf)))
       (println "Failed to validate procedure."))))
+
+(apply-operation {:config-path "deps.edn"
+                  :id "reagentttt"
+                  :operation :remove})
 
 (defn get-config
   "Looks in the current directory for the following files
