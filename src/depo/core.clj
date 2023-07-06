@@ -8,9 +8,10 @@
   (let [args  _arguments
         config-path (if file file (dd/get-config))]
     (if-not (empty? args)
-      (do (mapv #(dd/apply-operation {:config-path config-path
-                                      :id %
-                                      :operation :add}) args)
+      (do (mapv #(spit config-path
+                       (dd/apply-operation {:config-path config-path
+                                            :id %
+                                            :operation :add})) args)
           (println "Done!"))
       (println (e/err :no-args)))))
 
@@ -18,9 +19,10 @@
   (let [args  _arguments
         config-path (if file file (dd/get-config))]
     (if-not (empty? args)
-      (do (mapv #(dd/apply-operation {:config-path config-path
-                                      :id %
-                                      :operation :remove}) args)
+      (do (mapv #(spit config-path
+                       (dd/apply-operation {:config-path config-path
+                                            :id %
+                                            :operation :remove})) args)
           (println "Done!"))
       (println (e/err :no-args)))))
 
@@ -28,19 +30,21 @@
   (let [args  _arguments
         config-path (if file file (dd/get-config))]
     (if (empty? args)
-      (do (mapv #(dd/apply-operation {:config-path config-path
-                                      :id %
-                                      :operation :update})
+      (do (mapv #(spit config-path
+                       (dd/apply-operation {:config-path config-path
+                                            :id %
+                                            :operation :update}))
                 (zo/get-all-dependency-names config-path))
           (println "Done!"))
-      (mapv #(dd/apply-operation {:config-path config-path
-                                  :id %
-                                  :operation :update}) args))))
+      (mapv #(spit config-path
+                   (dd/apply-operation {:config-path config-path
+                                        :id %
+                                        :operation :update})) args))))
 
 (def CONFIGURATION
   {:command "depo"
    :description "Manage dependencies for Clojure projects easily"
-   :version "0.4.32"
+   :version "0.4.33"
    :opts [{:as "path to configuration file"
            :default nil
            :option "file"

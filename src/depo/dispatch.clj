@@ -63,6 +63,25 @@
                                    println)
                                zloc))))
 
+(defn create-procedure
+  [{:keys [config-path id operation]}]
+  (let [project-type (dutils/get-project-type config-path)
+        access-keys [(dutils/create-keys project-type)]
+        deps (zo/get-deps (z/of-string (slurp config-path)) access-keys project-type)
+        deps-type (cond (z/map? deps) :map
+                        (z/vector? deps) :vector)
+        {:keys [groupID artifactID]} (dutils/parse id)
+        identifier (symbol (dutils/create-identifier groupID artifactID deps-type))
+        dep-data (zo/get-dependency-data deps identifier)]
+    {:operation operation
+     :project-type project-type
+     :identifier identifier
+     :argument id
+     :dep-data dep-data
+     :dep-exists (if dep-data true false)
+     :deps-type deps-type
+     :zloc deps}))
+
 (defn apply-operation
   "Takes in a map containing
   - `:config-path` - the path to the config file
@@ -71,37 +90,14 @@
  
   Creates a `depo.schema/PROCEDURE` map to dispatch operations.
   It writes the resulting configuration into `config-path`. "
-  [{:keys [config-path id operation]}]
-  (let [config-zip (z/of-string (slurp config-path))
-        project-type (dutils/get-project-type config-path)
-        access-keys [(dutils/create-keys project-type)]
-        deps (zo/get-deps config-zip access-keys project-type)
-        {:keys [groupID artifactID]}  (dutils/parse id)
-        deps-type (cond
-                    (z/map? deps) :map
-                    (z/vector? deps) :vector)
-        identifier (symbol (dutils/create-identifier groupID artifactID deps-type))
-        dependency-data (zo/get-dependency-data deps identifier)
-        procedure {:operation operation
-                   :dep-exists (if dependency-data true false)
-                   :identifier identifier
-                   :project-type project-type
-                   :argument id
-                   :dep-data dependency-data
-                   :deps-type deps-type
-                   :zloc deps}]
+  [args-in]
+  (let [procedure (create-procedure args-in)]
     (if (m/validate schema/PROCEDURE procedure)
       (-> (dispatch procedure)
           (z/root-string)
           (zp/zprint-str {:parse-string? true
-                          :style :indent-only})
-          ; (println))
-          (as-> new-conf (spit config-path new-conf)))
-      (println "Failed to validate procedure."))))
-
-(apply-operation {:config-path "deps.edn"
-                  :id "reagentttt"
-                  :operation :remove})
+                          :style :indent-only}))
+      (m/explain schema/PROCEDURE procedure))))
 
 (defn get-config
   "Looks in the current directory for the following files

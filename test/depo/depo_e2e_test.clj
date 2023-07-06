@@ -23,14 +23,10 @@
   (for [{:keys [name]} tests]
     (io/make-parents (str "test/resources/temp/" name "/FILE"))))
 
-(defn delete-directories []
-  (for [{:keys [name]} tests]
-    (delete-directory (io/file (str "test/resources/temp/" name)))))
-
 (defn before-after [f]
   (setup-directories)
   (f)
-  (delete-directories))
+  (delete-directory (io/file TEMP-FOLDER)))
 
 (use-fixtures :once before-after)
 
