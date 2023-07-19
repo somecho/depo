@@ -44,7 +44,7 @@
 (def CONFIGURATION
   {:command "depo"
    :description "Manage dependencies for Clojure projects easily"
-   :version "0.4.33"
+   :version "0.4.34"
    :opts [{:as "path to configuration file"
            :default nil
            :option "file"
