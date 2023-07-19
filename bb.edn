@@ -3,4 +3,5 @@
   unit (shell "clojure" "-M:test" "unit")
   e2e (shell "clojure" "-M:test" "e2e")
   resolver (shell "clojure" "-M:test" "resolver")
+  dispatch (shell "clojure" "-M:test" "dispatch")
   generate-snapshots (shell "clojure" "-T:generate all-snapshots")}}
