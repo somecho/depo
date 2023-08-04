@@ -66,4 +66,42 @@
                        read-string
                        (as-> v (into (sorted-map) v)))]
       (is (contains? new-deps 'reagent))
-      (is (= (get new-deps 'reagent) "1.2.0")))))
+      (is (= (get new-deps 'reagent) "1.2.0"))))
+  (testing "add non-existent dependency"
+    (let [procedure (create-procedure {:config-path LEIN-PATH
+                                       :id "idonotexist/idonotexist"
+                                       :operation :add})
+          new-deps (-> procedure
+                       dispatch
+                       z/root-string
+                       z/of-string
+                       (z/find-value z/next :dependencies)
+                       z/next
+                       z/string
+                       read-string
+                       (as-> v (into (sorted-map) v)))]
+      (is (false? (contains? new-deps 'idonotexist))))))
+
+(deftest remove-lein
+  (testing "remove slingshot"
+    (let [procedure (create-procedure {:config-path LEIN-PATH
+                                       :id "slingshot"
+                                       :operation :remove})
+          new-deps (-> procedure
+                       dispatch
+                       z/root-string
+                       z/of-string
+                       (z/find-value z/next :dependencies)
+                       z/next
+                       z/string
+                       read-string
+                       (as-> v (into (sorted-map) v)))]
+      (is (false? (contains? new-deps 'selmer)))))
+  (testing "remove non-existent dependency"
+    (let [procedure (create-procedure {:config-path LEIN-PATH
+                                       :id "idonotexist/idonotexist"
+                                       :operation :remove})
+          new-deps (-> procedure
+                       dispatch
+                       z/root-string)]
+      (is (= new-deps (slurp LEIN-PATH))))))
