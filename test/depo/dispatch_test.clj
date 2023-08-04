@@ -5,6 +5,7 @@
             [clojure.test :refer [deftest testing is]]))
 
 (def DEFAULT-PATH "test/resources/input/deps.edn")
+(def LEIN-PATH "test/resources/input/project.clj")
 
 (deftest add-default
   (testing "add reagent 1.2.0"
@@ -50,4 +51,19 @@
                        z/root-string)]
       (is (= new-deps (slurp DEFAULT-PATH))))))
 
-
+(deftest add-lein
+  (testing "add reagent 1.2.0"
+    (let [procedure (create-procedure {:config-path LEIN-PATH
+                                       :id "reagent@1.2.0"
+                                       :operation :add})
+          new-deps (-> procedure
+                       dispatch
+                       z/root-string
+                       z/of-string
+                       (z/find-value z/next :dependencies)
+                       z/next
+                       z/string
+                       read-string
+                       (as-> v (into (sorted-map) v)))]
+      (is (contains? new-deps 'reagent))
+      (is (= (get new-deps 'reagent) "1.2.0")))))
