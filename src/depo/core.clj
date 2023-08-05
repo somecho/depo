@@ -1,4 +1,5 @@
 (ns ^:no-doc depo.core
+  (:gen-class)
   (:require [cli-matic.core :refer [run-cmd]]
             [depo.dispatch :as dd]
             [depo.errors :as e]

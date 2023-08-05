@@ -19,4 +19,5 @@
       :version-not-exist
       (str (:artifactID opts) " version " (:version opts) " does not exist")
       :404
-      (str (:argument opts) " could not be found from Clojars or Maven"))))
+      (str (:argument opts) " could not be found from Clojars or Maven")
+      "")))

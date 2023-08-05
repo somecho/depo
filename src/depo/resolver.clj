@@ -1,6 +1,6 @@
 (ns depo.resolver
   (:require [clojure.string :as s]
-            [clj-http.client :as client]
+            [clj-http.lite.client :as client]
             [depo.errors :as e]
             [depo.utils :as dutils]
             [depo.schema :as schema]))
