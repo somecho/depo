@@ -1,7 +1,6 @@
 {:paths ["src"],
  :deps {rewrite-clj/rewrite-clj {:mvn/version "1.1.47"},
         cli-matic/cli-matic {:mvn/version "0.5.4"},
-        ; clj-http/clj-http {:mvn/version "3.12.3"},
         org.clj-commons/clj-http-lite {:mvn/version "1.0.13"}
         metosin/malli {:mvn/version "0.11.0"},
         zprint/zprint {:mvn/version "1.2.7"}
@@ -9,8 +8,7 @@
  :aliases
  {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.85.1342"}}
          :main-opts ["-m" "kaocha.runner"]}
-  :build {:extra-deps {io.github.clojure/tools.build {:mvn/version
-                                                      "0.9.4"},
+  :build {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.9.4"},
                        slipset/deps-deploy {:mvn/version "RELEASE"}},
           :ns-default build}
   :generate {:ns-default generate}}}

@@ -3,4 +3,5 @@
 .lsp
 .nrepl-port
 target
+classes
 .env
