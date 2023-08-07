@@ -4,5 +4,7 @@ are [generated programmatically](../../../generate.clj).
 
 ### Generating snapshots
 ```bash
+bb generate-snapshots
+# or
 clj -T:generate all-snapshots
 ```

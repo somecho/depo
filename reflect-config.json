@@ -1,0 +1,8 @@
+[{
+	"name": "java.lang.String",
+	"allPublicMethods": true
+},
+{
+	"name": "com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl",
+	"allPublicMethods": true
+}]

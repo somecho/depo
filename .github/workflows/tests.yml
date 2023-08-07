@@ -26,6 +26,9 @@ jobs:
       - name: Run Unit Tests
         run: clojure -M:test "$@" unit
 
+      - name: Test Dispatch
+        run: clojure -M:test "$@" dispatch
+
       - name: Test Resolver
         run: clojure -M:test "$@" resolver
 

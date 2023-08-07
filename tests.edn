@@ -7,6 +7,9 @@
           {:id :resolver
            :ns-patterns [".resolver-test"]
            :test-paths ["test" "src"]}
+          {:id :dispatch
+           :ns-patterns [".*dispatch-test"]
+           :test-paths ["test" "src"]}
           {:id :e2e
            :ns-patterns [".*-e2e-test"]
            :test-paths ["test" "src"]}]}

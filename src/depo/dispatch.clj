@@ -2,6 +2,7 @@
   "Functions related to the control flow of the CLI,
   as well as IO operations, such as reading and writing the config."
   (:require [clojure.java.io :as io]
+            [depo.errors :as e]
             [depo.schema :as schema]
             [depo.utils :as dutils]
             [depo.zoperations :as zo]
@@ -39,20 +40,47 @@
   - `:add`
   - `:remove`
   - `:update`"
-  [{:keys [operation dep-exists identifier]
+  [{:keys [argument operation dep-exists identifier zloc]
     :as procedure}]
-  (case operation
-    :add (if dep-exists
-           (ignore-pass procedure
-                        #(zo/update-dependency procedure))
-           (zo/append-dependency procedure))
-    :remove (if dep-exists
-              (zo/remove-dependency procedure)
-              (skip-procedure identifier "is not a dependency."))
-    :update (if dep-exists
-              (ignore-pass procedure
-                           #(zo/update-dependency procedure))
-              (skip-procedure procedure identifier "is not a dependency."))))
+  (try (case operation
+         :add (if dep-exists
+                (ignore-pass procedure
+                             #(zo/update-dependency procedure))
+                (zo/append-dependency procedure))
+         :remove (if dep-exists
+                   (zo/remove-dependency procedure)
+                   (skip-procedure procedure identifier "is not a dependency."))
+         :update (if dep-exists
+                   (ignore-pass procedure
+                                #(zo/update-dependency procedure))
+                   (skip-procedure procedure identifier "is not a dependency.")))
+       (catch Exception e (do  (-> e
+                                   ex-data
+                                   :status
+                                   str
+                                   keyword
+                                   (e/err {:argument argument})
+                                   println)
+                               zloc))))
+
+(defn create-procedure
+  [{:keys [config-path id operation]}]
+  (let [project-type (dutils/get-project-type config-path)
+        access-keys [(dutils/create-keys project-type)]
+        deps (zo/get-deps (z/of-string (slurp config-path)) access-keys project-type)
+        deps-type (cond (z/map? deps) :map
+                        (z/vector? deps) :vector)
+        {:keys [groupID artifactID]} (dutils/parse id)
+        identifier (symbol (dutils/create-identifier groupID artifactID deps-type))
+        dep-data (zo/get-dependency-data deps identifier)]
+    {:operation operation
+     :project-type project-type
+     :identifier identifier
+     :argument id
+     :dep-data dep-data
+     :dep-exists (if dep-data true false)
+     :deps-type deps-type
+     :zloc deps}))
 
 (defn apply-operation
   "Takes in a map containing
@@ -62,32 +90,14 @@
  
   Creates a `depo.schema/PROCEDURE` map to dispatch operations.
   It writes the resulting configuration into `config-path`. "
-  [{:keys [config-path id operation]}]
-  (let [config-zip (z/of-string (slurp config-path))
-        project-type (dutils/get-project-type config-path)
-        access-keys [(dutils/create-keys project-type)]
-        deps (zo/get-deps config-zip access-keys project-type)
-        {:keys [groupID artifactID]}  (dutils/parse id)
-        deps-type (cond
-                    (z/map? deps) :map
-                    (z/vector? deps) :vector)
-        identifier (symbol (dutils/create-identifier groupID artifactID deps-type))
-        dependency-data (zo/get-dependency-data deps identifier)
-        procedure {:operation operation
-                   :dep-exists (if dependency-data true false)
-                   :identifier identifier
-                   :project-type project-type
-                   :argument id
-                   :dep-data dependency-data
-                   :deps-type deps-type
-                   :zloc deps}]
+  [args-in]
+  (let [procedure (create-procedure args-in)]
     (if (m/validate schema/PROCEDURE procedure)
       (-> (dispatch procedure)
           (z/root-string)
           (zp/zprint-str {:parse-string? true
-                          :style :indent-only})
-          (as-> new-conf (spit config-path new-conf)))
-      (println "Failed to validate procedure."))))
+                          :style :indent-only}))
+      (m/explain schema/PROCEDURE procedure))))
 
 (defn get-config
   "Looks in the current directory for the following files
