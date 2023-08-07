@@ -44,6 +44,13 @@ You can also use Depo as a library.
 ```
 For more information, see the [API documentation](https://cljdoc.org/d/org.clojars.some/depo/0.0.12).
 
+## Installation
+Depo can be built and installed as a native image:
+1. Install [GraalVM](https://github.com/graalvm/graalvm-ce-builds/releases/)
+2. Clone this repo
+3. Run `clj -T:build native-image` or, if you have babashka installed, `bb native-image`
+4. The binary is now in `target/`. Copy it to somewhere on your path.
+   
 ## Features / Commands
 To see a list of commands, run `depo --help`. 
 
